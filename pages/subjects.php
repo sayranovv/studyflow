@@ -16,8 +16,8 @@ $db = new Database([
 $userId = getCurrentUserId();
 $subjectModel = new Subject($db);
 
-$archived = $_GET['archived'] ?? 0;
-$sort = $_GET['sort'] ?? 'priority';
+$archived = isset($_GET['archived']) ? $_GET['archived'] : 0;
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'priority';
 $subjects = $subjectModel->getAll($userId, $archived, $sort);
 
 $colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#6366F1', '#14B8A6', '#F97316'];
@@ -46,13 +46,14 @@ $colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#0
         }
 
         .subjects-grid {
+            margin-top: 32px;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 24px;
         }
 
         .subject-card {
-            background: var(--surface);
+            background: var(--color-surface);
             border-radius: 12px;
             padding: 24px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -146,8 +147,9 @@ $colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#0
         }
 
         .btn-secondary-small {
-            background-color: var(--border);
-            color: var(--text);
+            border: 1px solid var(--color-border);
+            background: var(--color-background);
+            color: white;
         }
 
         .btn-secondary-small:hover {
@@ -176,8 +178,9 @@ $colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#0
 
         .filter-tab {
             padding: 8px 16px;
-            border: 1px solid var(--border);
-            background: white;
+            border: 1px solid var(--color-border);
+            background: var(--color-background);
+            color: white;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s;
@@ -186,7 +189,6 @@ $colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#0
 
         .filter-tab.active {
             background: var(--primary);
-            color: white;
             border-color: var(--primary);
         }
 
