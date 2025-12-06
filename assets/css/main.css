@@ -23,6 +23,19 @@
   --color-orange-400: rgba(230, 129, 97, 1);
   --color-orange-500: rgba(168, 75, 47, 1);
 
+    --primary: #3B82F6;
+    --primary-dark: #2563EB;
+    --primary-light: #60A5FA;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --error: #EF4444;
+    --bg: #F9FAFB;
+    --surface: #FFFFFF;
+    --border: #E5E7EB;
+    --text: #111827;
+    --text-light: #6B7280;
+
+
   /* RGB versions for opacity control */
   --color-brown-600-rgb: 94, 82, 64;
   --color-teal-500-rgb: 33, 128, 141;
