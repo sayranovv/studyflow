@@ -1,24 +1,26 @@
 class PomodoroTimer {
     constructor(settings) {
         this.settings = settings;
+        this.topicId = settings.topicId || null;
         this.isWorkMode = true;
         this.isRunning = false;
+        this.isPaused = false;
         this.sessionCount = 0;
         this.intervalId = null;
         this.timeLeft = this.settings.workDuration * 60;
 
-        this.timeEl = document.getElementById('timerTime');
-        this.statusEl = document.getElementById('timerStatus');
-        this.progressEl = document.getElementById('timerProgress');
+        this.timeEl = document.getElementById('timerDisplay');
+        this.statusEl = document.getElementById('phaseLabel');
+        this.progressEl = document.getElementById('progressCircle');
 
         this.updateDisplay();
-        this.updateButtonsVisibility();
     }
 
     start() {
         if (this.isRunning) return;
+
         this.isRunning = true;
-        this.updateButtonsVisibility();
+        this.isPaused = false;
 
         if (!this.intervalId) {
             this.intervalId = setInterval(() => this.tick(), 1000);
@@ -27,19 +29,32 @@ class PomodoroTimer {
 
     pause() {
         this.isRunning = false;
-        this.updateButtonsVisibility();
+        this.isPaused = true;
+
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+    }
+
+    stop() {
+        this.isRunning = false;
+        this.isPaused = false;
+
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+
+        this.reset();
     }
 
     reset() {
-        this.isRunning = false;
-        clearInterval(this.intervalId);
-        this.intervalId = null;
         this.isWorkMode = true;
         this.sessionCount = 0;
         this.timeLeft = this.settings.workDuration * 60;
         this.updateStatusText();
         this.updateDisplay();
-        this.updateButtonsVisibility();
     }
 
     tick() {
@@ -55,12 +70,9 @@ class PomodoroTimer {
     }
 
     completeSession() {
-        if (this.isWorkMode) {
+        if (this.isWorkMode && this.topicId) {
             this.sessionCount++;
-
-            if (typeof CURRENT_TOPIC_ID !== 'undefined' && CURRENT_TOPIC_ID) {
-                this.saveSession();
-            }
+            this.saveSession();
 
             const counterEl = document.getElementById('sessionCount');
             if (counterEl) {
@@ -69,37 +81,41 @@ class PomodoroTimer {
             }
         }
 
-        if (this.settings.soundEnabled) {
-            const sound = document.getElementById('bellSound');
-            if (sound) sound.play();
+        const sound = document.getElementById('bellSound');
+        if (sound) {
+            sound.play().catch(e => console.log('Не удалось воспроизвести звук'));
         }
     }
 
     switchMode() {
         this.isWorkMode = !this.isWorkMode;
         this.isRunning = false;
-        clearInterval(this.intervalId);
-        this.intervalId = null;
+
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
 
         if (this.isWorkMode) {
             this.timeLeft = this.settings.workDuration * 60;
         } else {
-            const isLongBreak = this.sessionCount > 0 && this.sessionCount % this.settings.longBreakInterval === 0;
-            this.timeLeft = (isLongBreak ? this.settings.longBreak : this.settings.shortBreak) * 60;
+            const isLongBreak = this.sessionCount > 0 &&
+                this.sessionCount % this.settings.sessionsBeforeLongBreak === 0;
+            this.timeLeft = (isLongBreak ? this.settings.longBreakDuration : this.settings.shortBreakDuration) * 60;
         }
 
         this.updateStatusText();
         this.updateDisplay();
-        this.updateButtonsVisibility();
 
         if (!this.isWorkMode && this.settings.autoStartBreaks) {
-            setTimeout(() => this.start(), 1000);
+            setTimeout(() => this.start(), 2000);
         }
     }
 
     updateStatusText() {
-        if (!this.statusEl) return;
-        this.statusEl.textContent = this.isWorkMode ? 'Фокус' : 'Перерыв';
+        if (this.statusEl) {
+            this.statusEl.textContent = this.isWorkMode ? 'Работа' : 'Перерыв';
+        }
     }
 
     updateDisplay() {
@@ -109,56 +125,95 @@ class PomodoroTimer {
             this.timeEl.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         }
 
+        this.updateStatusText();
+
         if (this.progressEl) {
-            const radius = 140;
+            const radius = 45;
             const circumference = 2 * Math.PI * radius;
+
             const totalTime = (this.isWorkMode ? this.settings.workDuration :
-                (this.sessionCount > 0 && this.sessionCount % this.settings.longBreakInterval === 0
-                    ? this.settings.longBreak
-                    : this.settings.shortBreak)) * 60;
+                (this.sessionCount > 0 && this.sessionCount % this.settings.sessionsBeforeLongBreak === 0
+                    ? this.settings.longBreakDuration
+                    : this.settings.shortBreakDuration)) * 60;
+
             const progress = 1 - (this.timeLeft / totalTime);
+            const offset = circumference * (1 - progress);
+
             this.progressEl.style.strokeDasharray = `${circumference}`;
-            this.progressEl.style.strokeDashoffset = `${circumference * (1 - progress)}`;
+            this.progressEl.style.strokeDashoffset = `${offset}`;
+        }
+
+        // Обновляем линейный прогресс-бар
+        const progressFill = document.getElementById('progressFill');
+        if (progressFill) {
+            const totalSessions = parseInt(document.getElementById('sessionCount').nextSibling.textContent.replace('/', '').trim()) || 4;
+            const completedSessions = parseInt(document.getElementById('sessionCount').textContent) || 0;
+            const progress = (completedSessions / totalSessions) * 100;
+            progressFill.style.width = `${progress}%`;
         }
     }
 
-    updateButtonsVisibility() {
-        const startBtn = document.getElementById('startBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        if (!startBtn || !pauseBtn) return;
+    saveToLocalStorage() {
+        const state = {
+            topicId: this.topicId,
+            isWorkMode: this.isWorkMode,
+            timeLeft: this.timeLeft,
+            sessionCount: this.sessionCount
+        };
+        localStorage.setItem('pomodoroState', JSON.stringify(state));
+    }
 
-        if (this.isRunning) {
-            startBtn.style.display = 'none';
-            pauseBtn.style.display = 'inline-flex';
-        } else {
-            startBtn.style.display = 'inline-flex';
-            pauseBtn.style.display = 'none';
+    loadFromLocalStorage() {
+        const stored = localStorage.getItem('pomodoroState');
+        if (stored) {
+            const state = JSON.parse(stored);
+            this.topicId = state.topicId;
+            this.isWorkMode = state.isWorkMode;
+            this.timeLeft = state.timeLeft;
+            this.sessionCount = state.sessionCount;
+            this.updateDisplay();
         }
     }
 
     async saveSession() {
+        if (!this.topicId) {
+            console.warn('No topic selected, session not saved');
+            return;
+        }
+
+        const sessionData = {
+            topic_id: parseInt(this.topicId),
+            duration_minutes: this.settings.workDuration,
+            session_type: 'work',  // <-- ИСПРАВЛЕНО
+            notes: document.getElementById('notes')?.value || ''
+        };
+
+        console.log('Saving session:', sessionData);
+
         try {
             const response = await fetch('/api/sessions.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    topic_id: CURRENT_TOPIC_ID,
-                    duration_minutes: this.settings.workDuration,
-                    session_type: 'new_material'
-                })
+                body: JSON.stringify(sessionData)
             });
 
             const result = await response.json();
-            if (!result.success) {
-                console.error('Failed to save session:', result.error);
+            console.log('Save session response:', result);
+
+            if (result.success) {
+                console.log('✅ Session saved successfully, ID:', result.session_id);
+
+                const notesEl = document.getElementById('notes');
+                if (notesEl) notesEl.value = '';
+
+            } else {
+                console.error('❌ Failed to save session:', result.error);
+                alert('Не удалось сохранить сессию: ' + result.error);
             }
         } catch (error) {
-            console.error('Error saving session:', error);
+            console.error('❌ Error saving session:', error);
+            alert('Ошибка при сохранении сессии. Проверьте соединение.');
         }
     }
-}
 
-let timer;
-if (typeof TIMER_SETTINGS !== 'undefined') {
-    timer = new PomodoroTimer(TIMER_SETTINGS);
 }
