@@ -33,7 +33,7 @@ $settings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$userI
         }
 
         .settings-section {
-            background: var(--surface);
+            background: var(--color-surface);
             padding: 24px;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -43,14 +43,14 @@ $settings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$userI
             margin-top: 0;
             margin-bottom: 20px;
             font-size: 18px;
-            border-bottom: 2px solid var(--border);
+            border-bottom: 2px solid var(--color-card-border);
             padding-bottom: 12px;
         }
 
         .setting-item {
             margin-bottom: 20px;
             padding-bottom: 20px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--color-card-border);
         }
 
         .setting-item:last-child {
@@ -68,10 +68,11 @@ $settings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$userI
         .setting-input {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--color-card-border);
             border-radius: 6px;
             font-size: 14px;
             transition: all 0.3s;
+            background: var(--color-background);
         }
 
         .setting-input:focus {
@@ -114,7 +115,7 @@ $settings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$userI
 
         .btn-save {
             padding: 12px 24px;
-            background: var(--primary);
+            background-color: var(--primary);
             color: white;
             border: none;
             border-radius: 8px;
@@ -168,7 +169,6 @@ $settings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$userI
                 <div id="successMessage" class="success-message">✓ Настройки сохранены!</div>
 
                 <div class="settings-grid">
-                    <!-- Профиль -->
                     <div class="settings-section">
                         <h3>👤 Профиль</h3>
                         
@@ -188,7 +188,6 @@ $settings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$userI
                         </div>
                     </div>
 
-                    <!-- Помодоро -->
                     <div class="settings-section">
                         <h3>🍅 Техника Помодоро</h3>
 
@@ -242,7 +241,6 @@ $settings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$userI
                         </div>
                     </div>
 
-                    <!-- Уведомления -->
                     <div class="settings-section">
                         <h3>🔔 Уведомления</h3>
 
@@ -274,7 +272,6 @@ $settings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$userI
                         </div>
                     </div>
 
-                    <!-- Расписание -->
                     <div class="settings-section">
                         <h3>📅 Расписание</h3>
 
