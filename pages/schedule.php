@@ -7,17 +7,18 @@ require_once __DIR__ . '/../classes/Schedule.php';
 requireAuth();
 
 $db = new Database([
-    'host' => DB_HOST,
-    'user' => DB_USER,
-    'password' => DB_PASSWORD,
-    'dbname' => DB_NAME
+        'host' => DB_HOST,
+        'user' => DB_USER,
+        'password' => DB_PASSWORD,
+        'dbname' => DB_NAME
 ]);
 
 $userId = getCurrentUserId();
 $scheduleModel = new Schedule($db);
 
+$periodWeeks = $_GET['period'] ?? 1;
 $today = date('Y-m-d');
-$weekEnd = date('Y-m-d', strtotime('+7 days'));
+$weekEnd = date('Y-m-d', strtotime("+{$periodWeeks} weeks"));
 
 $schedule = $scheduleModel->getSchedule($userId, $today, $weekEnd);
 $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$userId]);
@@ -48,12 +49,13 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
 
         .btn-period {
             padding: 8px 16px;
-            border: 1px solid var(--border);
-            background: white;
             border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.3s;
+            border: 1px solid var(--color-border);
+            background: var(--color-background);
+            color: white;
         }
 
         .btn-period.active {
@@ -83,10 +85,10 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
         }
 
         .schedule-day {
-            background: var(--surface);
+            background: var(--color-surface);
             border-radius: 8px;
             overflow: hidden;
-            border: 1px solid var(--border);
+            border: 1px solid var(--color-card-border);
         }
 
         .day-header {
@@ -102,6 +104,7 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
             font-size: 12px;
             font-weight: 400;
             opacity: 0.9;
+            margin-top: 4px;
         }
 
         .day-items {
@@ -109,21 +112,21 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-height: 300px;
-            overflow-y: auto;
+            min-height: 60px;
         }
 
         .day-items:empty::after {
-            content: 'Нет запланировано';
+            content: 'Нет задач';
             color: var(--text-light);
             font-size: 12px;
             padding: 20px;
             text-align: center;
+            display: block;
         }
 
         .schedule-session {
-            background: var(--bg);
-            border-left: 4px solid;
+            background: var(--color-surface);
+            border-left: 4px solid var(--color-card-border);
             padding: 12px;
             border-radius: 6px;
             font-size: 13px;
@@ -133,9 +136,10 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
 
         .schedule-session:hover {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateX(2px);
         }
 
-        .session-type-new {
+        .session-type-new_material {
             border-left-color: var(--primary);
         }
 
@@ -144,6 +148,7 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
         }
 
         .session-name {
+            color: var(--color-text-secondary);
             font-weight: 600;
             margin-bottom: 4px;
         }
@@ -162,7 +167,7 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
             font-weight: 600;
         }
 
-        .badge-new {
+        .badge-new_material {
             background: #DBEAFE;
             color: #0C4A6E;
         }
@@ -173,11 +178,23 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
         }
 
         .session-status {
-            margin-left: auto;
-            padding: 2px 8px;
-            border-radius: 3px;
+            padding: 4px 8px;
+            border-radius: 4px;
             font-size: 11px;
             font-weight: 600;
+        }
+
+        .status-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-completed {
+            background: #DCFCE7;
+            color: #166534;
+        }
+
+        .status-skipped {
             background: #F3F4F6;
             color: #6B7280;
         }
@@ -187,104 +204,119 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
                 flex-direction: column;
                 align-items: flex-start;
             }
-
-            .schedule-calendar {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="dashboard">
-        <header class="header">
-            <div class="header-content">
-                <h1>StudyFlow</h1>
-                <nav class="nav">
-                    <a href="/pages/dashboard.php">Dashboard</a>
-                    <a href="/pages/subjects.php">Предметы</a>
-                    <a href="/pages/timer.php">Таймер</a>
-                    <a href="/pages/schedule.php" style="font-weight: bold;">Расписание</a>
-                    <a href="/pages/statistics.php">Статистика</a>
-                    <a href="/pages/settings.php">Настройки</a>
-                    <a href="#" onclick="logout()">Выход</a>
-                </nav>
-            </div>
-        </header>
+<div class="dashboard">
+    <header class="header">
+        <div class="header-content">
+            <h1>StudyFlow</h1>
+            <nav class="nav">
+                <a href="/pages/dashboard.php">Dashboard</a>
+                <a href="/pages/subjects.php">Предметы</a>
+                <a href="/pages/timer.php">Таймер</a>
+                <a href="/pages/schedule.php" style="font-weight: bold;">Расписание</a>
+                <a href="/pages/statistics.php">Статистика</a>
+                <a href="/pages/settings.php">Настройки</a>
+                <a href="#" onclick="logout()">Выход</a>
+            </nav>
+        </div>
+    </header>
 
-        <main class="main-content">
-            <div class="container">
-                <h2 style="margin-bottom: 20px;">Расписание</h2>
+    <main class="main-content">
+        <div class="container">
+            <h2 style="margin-bottom: 20px;">Расписание</h2>
 
-                <div class="schedule-controls">
-                    <div class="schedule-period">
-                        <button class="btn-period active" onclick="changePeriod(1)">Неделя</button>
-                        <button class="btn-period" onclick="changePeriod(2)">2 недели</button>
-                        <button class="btn-period" onclick="changePeriod(4)">Месяц</button>
-                    </div>
-                    <button class="btn-generate" onclick="generateSchedule()">Сгенерировать расписание</button>
+            <div class="schedule-controls">
+                <div class="schedule-period">
+                    <button class="btn-period <?php echo $periodWeeks == 1 ? 'active' : ''; ?>" onclick="changePeriod(1)">Неделя</button>
+                    <button class="btn-period <?php echo $periodWeeks == 2 ? 'active' : ''; ?>" onclick="changePeriod(2)">2 недели</button>
+                    <button class="btn-period <?php echo $periodWeeks == 4 ? 'active' : ''; ?>" onclick="changePeriod(4)">Месяц</button>
                 </div>
+                <button class="btn-generate" onclick="generateSchedule()">⚡ Сгенерировать расписание</button>
+            </div>
 
-                <div class="schedule-calendar">
-                    <?php
-                    $currentDate = strtotime($today);
-                    $endDate = strtotime($weekEnd);
+            <div class="schedule-calendar">
+                <?php
+                $currentDate = strtotime($today);
+                $endDate = strtotime($weekEnd);
 
-                    while ($currentDate <= $endDate) {
-                        $dateStr = date('Y-m-d', $currentDate);
-                        $daySchedule = array_filter($schedule, fn($s) => $s['scheduled_date'] === $dateStr);
+                while ($currentDate <= $endDate) {
+                    $dateStr = date('Y-m-d', $currentDate);
+                    $daySchedule = array_filter($schedule, fn($s) => $s['scheduled_date'] === $dateStr);
 
-                        $dayName = match(date('w', $currentDate)) {
-                            0 => 'Воскресенье',
-                            1 => 'Понедельник',
-                            2 => 'Вторник',
-                            3 => 'Среда',
-                            4 => 'Четверг',
-                            5 => 'Пятница',
-                            6 => 'Суббота'
-                        };
+                    $dayOfWeek = (int)date('w', $currentDate);
+
+                    $dayName = match($dayOfWeek) {
+                        0 => 'Воскресенье',
+                        1 => 'Понедельник',
+                        2 => 'Вторник',
+                        3 => 'Среда',
+                        4 => 'Четверг',
+                        5 => 'Пятница',
+                        6 => 'Суббота',
+                        default => 'День недели'
+                    };
                     ?>
-                        <div class="schedule-day">
-                            <div class="day-header">
-                                <?php echo $dayName; ?>
-                                <span class="date"><?php echo date('d.m.Y', $currentDate); ?></span>
-                            </div>
-                            <div class="day-items">
-                                <?php foreach ($daySchedule as $item): ?>
-                                    <div class="schedule-session session-type-<?php echo $item['session_type']; ?>"
-                                         onclick="viewSessionDetail(<?php echo $item['id']; ?>)">
-                                        <div style="display: flex; gap: 8px; align-items: start;">
-                                            <div style="flex: 1;">
-                                                <div class="session-name"><?php echo sanitizeInput($item['topic_name']); ?></div>
-                                                <div class="session-subject"><?php echo sanitizeInput($item['subject_name']); ?></div>
-                                                <span class="session-type-badge badge-<?php echo $item['session_type']; ?>">
-                                                    <?php echo $item['session_type'] === 'new_material' ? 'Новый материал' : 'Повторение'; ?>
-                                                </span>
-                                            </div>
-                                            <span class="session-status"><?php echo ucfirst($item['status']); ?></span>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
+                    <div class="schedule-day">
+                        <div class="day-header">
+                            <?php echo $dayName; ?>
+                            <span class="date"><?php echo date('d.m.Y', $currentDate); ?></span>
                         </div>
+                        <div class="day-items">
+                            <?php foreach ($daySchedule as $item): ?>
+                                <div class="schedule-session session-type-<?php echo $item['session_type']; ?>"
+                                     onclick="viewSessionDetail(<?php echo $item['id']; ?>)">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px;">
+                                        <div style="flex: 1;">
+                                            <div class="session-name"><?php echo sanitizeInput($item['topic_name']); ?></div>
+                                            <div class="session-subject"><?php echo sanitizeInput($item['subject_name']); ?></div>
+                                            <span class="session-type-badge badge-<?php echo $item['session_type']; ?>">
+                                                    <?php echo $item['session_type'] === 'new_material' ? '📚 Новый материал' : '🔄 Повторение'; ?>
+                                                </span>
+                                        </div>
+                                        <span class="session-status status-<?php echo $item['status']; ?>">
+                                                <?php
+                                                echo match($item['status']) {
+                                                    'pending' => 'Ожидает',
+                                                    'completed' => 'Завершено',
+                                                    'skipped' => 'Пропущено',
+                                                    'rescheduled' => 'Перенесено',
+                                                    default => ucfirst($item['status'])
+                                                };
+                                                ?>
+                                            </span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                     <?php
-                        $currentDate = strtotime('+1 day', $currentDate);
-                    }
-                    ?>
-                </div>
+                    $currentDate = strtotime('+1 day', $currentDate);
+                }
+                ?>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
+</div>
 
-    <script src="/assets/js/main.js"></script>
-    <script>
-        function changePeriod(weeks) {
-            console.log('Изменить период на', weeks, 'недель');
+<script>
+    function changePeriod(weeks) {
+        window.location.href = '/pages/schedule.php?period=' + weeks;
+    }
+
+    async function generateSchedule() {
+        if (!confirm('Сгенерировать новое расписание? Существующие задачи не будут удалены.')) {
+            return;
         }
 
-        function generateSchedule() {
-            const periodWeeks = 1;
-            const availableDays = [1, 2, 3, 4, 5];
-            const timeSlots = {
+        const periodWeeks = <?php echo $periodWeeks; ?>;
+        const scheduleData = {
+            period_weeks: periodWeeks,
+            start_date: new Date().toISOString().split('T')[0],
+            available_days: [1, 2, 3, 4, 5], // Пн-Пт по умолчанию
+            time_slots: {
                 1: { start: '18:00', end: '22:00' },
                 2: { start: '18:00', end: '22:00' },
                 3: { start: '18:00', end: '22:00' },
@@ -292,45 +324,56 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
                 5: { start: '18:00', end: '22:00' },
                 6: { start: '10:00', end: '18:00' },
                 0: { start: '10:00', end: '18:00' }
-            };
+            },
+            max_sessions_per_day: <?php echo $userSettings['max_sessions_per_day'] ?? 4; ?>
+        };
 
-            const scheduleData = {
-                period_weeks: periodWeeks,
-                start_date: new Date().toISOString().split('T')[0],
-                available_days: availableDays,
-                time_slots: timeSlots,
-                max_sessions_per_day: 4
-            };
-
-            fetch('/api/schedule.php', {
+        try {
+            const response = await fetch('/api/schedule.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(scheduleData)
-            })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`✅ Расписание сгенерировано!\nСоздано задач: ${data.items_created || 0}`);
+                location.reload();
+            } else {
+                alert('❌ Ошибка: ' + (data.error || 'Не удалось создать расписание'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Ошибка при генерации расписания. Проверьте соединение.');
+        }
+    }
+
+    function viewSessionDetail(id) {
+        console.log('Viewing session:', id);
+
+        fetch(`/api/schedule.php?id=${id}`)
             .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    alert(`Расписание сгенерировано! Создано ${data.items_created} сессий`);
-                    location.reload();
-                } else {
-                    alert('Ошибка: ' + data.error);
+                if (data.success && data.item) {
+                    const topicId = data.item.topic_id;
+                    if (confirm(`Начать работу над темой "${data.item.topic_name}"?`)) {
+                        window.location.href = `/pages/timer.php?topic_id=${topicId}`;
+                    }
                 }
             })
-            .catch(e => alert('Ошибка при генерации расписания'));
-        }
+            .catch(e => console.error('Error loading session:', e));
+    }
 
-        function viewSessionDetail(id) {
-            alert('Детали сессии ID: ' + id);
+    async function logout() {
+        const response = await fetch('/api/auth.php?action=logout', { method: 'POST' });
+        if (response.ok) {
+            window.location.href = '/pages/auth/login.php';
         }
-
-        async function logout() {
-            const response = await fetch('/api/auth.php?action=logout', { method: 'POST' });
-            if (response.ok) {
-                window.location.href = '/pages/auth/login.php';
-            }
-        }
-    </script>
+    }
+</script>
+<script src="/assets/js/main.js"></script>
 </body>
 </html>
