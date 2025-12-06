@@ -15,8 +15,8 @@ $db = new Database([
 ]);
 
 $userId = getCurrentUserId();
-$subjectId = $_GET['subject_id'] ?? null;
-$status = $_GET['status'] ?? null;
+$subjectId = isset($_GET['subject_id']) ? $_GET['subject_id'] : null;
+$status = isset($_GET['status']) ? $_GET['status'] : null;
 
 $subjectModel = new Subject($db);
 $topicModel = new Topic($db);
