@@ -13,11 +13,21 @@ function getCurrentUserId() {
 }
 
 function requireAuth() {
-    if (!isAuthenticated()) {
-        header('Location: /pages/auth/login.php');
-        exit;
+    if (!isset($_SESSION['user_id'])) {
+        $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+        $isApiRequest = strpos($requestUri, '/api/') !== false;
+
+        if ($isApiRequest) {
+            http_response_code(401);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        } else {
+            redirect('/pages/auth/login.php');
+        }
     }
 }
+
 
 function jsonResponse($data, $statusCode = 200) {
     http_response_code($statusCode);
