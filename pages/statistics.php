@@ -38,7 +38,7 @@ $distribution = $statsModel->getSubjectTimeDistribution($userId);
         }
 
         .stat-card {
-            background: var(--surface);
+            background: var(--color-surface);
             padding: 24px;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -57,7 +57,7 @@ $distribution = $statsModel->getSubjectTimeDistribution($userId);
         .stat-value {
             font-size: 36px;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--color-primary);
             margin: 8px 0;
         }
 
@@ -68,7 +68,7 @@ $distribution = $statsModel->getSubjectTimeDistribution($userId);
         }
 
         .chart-section {
-            background: var(--surface);
+            background: var(--color-surface);
             padding: 24px;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -90,7 +90,7 @@ $distribution = $statsModel->getSubjectTimeDistribution($userId);
         .heatmap-day {
             width: 100%;
             aspect-ratio: 1;
-            background: var(--bg);
+            background: var(--color-surface);
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -99,7 +99,7 @@ $distribution = $statsModel->getSubjectTimeDistribution($userId);
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            border: 1px solid var(--border);
+            border: 1px solid var(--color-border);
         }
 
         .heatmap-day:hover {
@@ -108,14 +108,14 @@ $distribution = $statsModel->getSubjectTimeDistribution($userId);
         }
 
         .heatmap-day.active {
-            background: var(--primary);
+            background: var(--color-surface);
             color: white;
-            border-color: var(--primary);
+            border-color: var(--color-border);
         }
 
         .heatmap-day.has-data-low {
             background: rgba(59, 130, 246, 0.2);
-            color: var(--primary);
+            color: var(--color-surface);
         }
 
         .heatmap-day.has-data-medium {
@@ -165,7 +165,7 @@ $distribution = $statsModel->getSubjectTimeDistribution($userId);
         }
 
         .achievement {
-            background: var(--bg);
+            background: var(--color-surface);
             padding: 16px;
             border-radius: 8px;
             text-align: center;
