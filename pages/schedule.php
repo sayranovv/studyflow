@@ -55,7 +55,7 @@ $userSettings = $db->getOne('SELECT * FROM user_settings WHERE user_id = ?', [$u
             transition: all 0.3s;
             border: 1px solid var(--color-border);
             background: var(--color-background);
-            color: white;
+            color: var(--color-text);
         }
 
         .btn-period.active {

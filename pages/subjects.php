@@ -149,7 +149,7 @@ $colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#0
         .btn-secondary-small {
             border: 1px solid var(--color-border);
             background: var(--color-background);
-            color: white;
+            color: var(--color-text);
         }
 
         .btn-secondary-small:hover {
@@ -180,7 +180,7 @@ $colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#0
             padding: 8px 16px;
             border: 1px solid var(--color-border);
             background: var(--color-background);
-            color: white;
+            color: var(--color-text);
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s;
@@ -188,6 +188,7 @@ $colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#0
         }
 
         .filter-tab.active {
+            color: white;
             background: var(--primary);
             border-color: var(--primary);
         }

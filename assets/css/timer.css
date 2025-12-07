@@ -31,8 +31,10 @@
 
 .timer-header h1 {
     margin: 0;
+    padding-right: 84px;
     font-size: var(--font-size-3xl);
     font-weight: var(--font-weight-semibold);
+    color: white;
 }
 
 .btn-back {
